@@ -25,3 +25,54 @@ The task is simply getting the head/root of a phrase: the Doc element is convert
 The function explores the sentence token by token, and if its `.dep_` attribute is one of interest, it adds to a dictionary the single-word Span got by splicing using the index attribute of the token `[token.i:token.i+1]`.
 
 As stated in the [official documentation](https://spacy.io/models/en), the indirect object relationship is not labelled with the `iobj` tag. Other [sources](https://downloads.cs.stanford.edu/nlp/software/dependencies_manual.pdf) says that the indirect object of a VP is the noun phrase which is the (dative) object of the verb. For this reason, the function search the `dative` tag for the indirect subject.
+
+## Part B - NLTK Transition Parser
+The primary obstacle of this task is the lack of NLTK documentation.
+### Task B1-B3
+Given the design choices of the library, it's easier to change features and model altogether. I kept only the eager algorithm, to simplify the code. I provided as parameter the desired classification model: Support Vector Machine or Multi-Layer Perceptron
+
+The features considered in the original algorithm, each one checked to see if "it is informative", are:
+- Stack
+  - STK_0_FORM_\<word>
+  - STK_0_LEMMA_\<lemma>
+  - STK_0_POS_\<tag>
+  - STK_0_FEATS_\<feats[0]> , ... , STK_0_FEATS_\<feats[N]>: Never appearing
+  - STK_1_POS_\<tag>
+  - STK_0_LDEP_\<leftmost dependency>: Never appearing
+  - STK_0_RDEP_\<rightmost dependency>: Never appearing
+- Buffer
+  - BUF_0_FORM_\<word>
+  - BUF_0_LEMMA_\<lemma>
+  - BUF_0_POS_\<tag>
+  - BUF_0_FEATS_\<feats[0]> , ... , BUF_0_FEATS_\<feats[N]>: Never appearing
+  - BUF_1_FORM_\<word>
+  - BUF_1_POS_\<tag>
+  - BUF_2_POS_\<tag>
+  - BUF_3_POS_\<tag>
+  - BUF_0_LDEP_\<leftmost dependency>: Never appearing
+  - BUF_0_RDEP_\<rightmost dependency>: Never appearing
+
+Features are converted into binaries by transforming each string into an unique value followed by a default value of 1.0: "0:1.0 30:1.0 21:1.0 ..."
+
+The function `_check_informative` has been changed to return None if not informative or the feature itself if informative.
+
+I used the FastText libray to convert each word to a vector of length 6. I provided in the data folder the such model to convert the words, that is downloaded during the notebook execution. In the notebook it's also present the snippet I used on my local machine to shrink the 300-features model into a 6-features model.
+
+POS tags have been included in the features by transforming them with a OneHotEncoding
+
+The features I considered are:
+- Stack
+  - \<word> , ... , \<word> top 2 words of the stack
+  - \<words> a discounted (0.6) sum of the rest of the stack
+  - \<tag> , ... , \<tag> top 2 tags of the stack
+- Buffer
+  - \<word> , ... , \<word> first 3 words of the buffer
+  - <words> a discounted (0.6) sum of the rest of the buffer
+  - \<tag> , ... , \<tag> first 3 tags of the buffer
+
+### Task B2
+With a small number of training samples, the performance of the the new parser are well below the performances of the original one, but they are also much faster because the original one is not efficiently implemented.
+But, when the MLP parser is trained on a larger amount of training samples (~10 minutes without GPU), it achieves way better performances. If the original parser would be better implemented, it could be trained on more samples and maybe achieve similar performances.
+
+In conclusion, the new features do not seem to be better, but using a neural network classifier leads to a good improvement.
+
