@@ -22,7 +22,7 @@ If they don't match, it's possible that the wrong occurrence of the anchor word 
 ### Task A4
 The task is simply getting the head/root of a phrase: the Doc element is converted into a full-lenght Span with the slice operation `Doc[:]`, from which the root attribute is returned.
 ### Task A5
-The function explores the sentence token by token, and if its `.dep_` attribute is one of interest, it adds to a dictionary the single-word Span got by splicing using the index attribute of the token `[token.i:token.i+1]`.
+The function explores the sentence token by token, and if its `.dep_` attribute is one of interest, it adds performs the addition to the dictionary: first, it gets the subtree of the token, then it gets the Span of it by slicing the Doc with the indices of the first and the last element of the subtree `[subtree[0].i:subtree[-1].i+1]`.
 
 As stated in the [official documentation](https://spacy.io/models/en), the indirect object relationship is not labelled with the `iobj` tag. Other [sources](https://downloads.cs.stanford.edu/nlp/software/dependencies_manual.pdf) says that the indirect object of a VP is the noun phrase which is the (dative) object of the verb. For this reason, the function search the `dative` tag for the indirect subject.
 
